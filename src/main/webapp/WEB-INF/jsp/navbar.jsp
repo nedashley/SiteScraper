@@ -18,16 +18,6 @@
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 
                 <ul class="nav navbar-nav">
-                    <sec:authorize access="hasAnyRole('SALES_TEAM','INTRODUCER')">
-                        <li uib-dropdown>
-                            <a href="/PanelManagement/sales_leads/#!/sales_leads/overview" id="sales-leads-dropdown" uib-dropdown-toggle>Leads &nbsp; <span class="caret"></span></a>
-                            <ul uib-dropdown-menu aria-labelledby="sales-leads-dropdown">
-                                <li><a href="/PanelManagement/sales_leads/#!/sales_leads/overview" >Sales Leads</a></li>    
-                                <li><a href="/PanelManagement/sales_leads/#!/sales_leads/search" >Search</a></li>    
-                                <li><a href="/PanelManagement/sales_leads/#!/sales_leads/create" >New Lead</a></li>    
-                            </ul>
-                        </li>
-                    </sec:authorize>
                 </ul>
 
                 <form class="navbar-right navbar-form" action="<c:url value='/logout.htm' />" method="post">
