@@ -21,14 +21,15 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ScrapeDaoImpl extends BaseAbstractDao implements ScrapeDao {
 
-    private final String selectMiniScrapesSql = "SELECT s.*,"
-            + "(SELECT COUNT(l.*) FROM links l WHERE l.l_scrape_id = s.s_id) AS ms_link_count,"
-            + "(SELECT COUNT(l.*) FROM links l WHERE l.l_scrape_id = s.s_id AND l.l_response BETWEEN '200' AND '299') AS ms_positives_count,"
-            + "(SELECT COUNT(l.*) FROM links l WHERE l.l_scrape_id = s.s_id AND (l.l_response < '200' OR l.l_response > '299')) AS ms_negatives_count,"
-            + "e.e_email "
+    private final String selectMiniScrapesSql = "SELECT s.s_id, s.s_started, s.s_finished, s.s_name, s.s_max_depth, "
+            + "(SELECT COUNT(l.*) FROM links l WHERE l.l_scrape_id = s.s_id) AS ms_link_count, "
+            + "(SELECT COUNT(l.*) FROM links l WHERE l.l_scrape_id = s.s_id AND l.l_response BETWEEN '200' AND '299') AS ms_positives_count, "
+            + "(SELECT COUNT(l.*) FROM links l WHERE l.l_scrape_id = s.s_id AND (l.l_response < '200' OR l.l_response > '299')) AS ms_negatives_count, "
+            + "(SELECT array_to_json(array_agg(e.e_email)) FROM emails e WHERE e.e_link_id IN (SELECT l2.l_id FROM links l2 WHERE l2.l_scrape_id = s.s_id)) AS email_set "
             + "FROM scrapes s "
             + "LEFT JOIN links l ON s.s_id = l.l_scrape_id "
-            + "LEFT JOIN emails e ON l.l_id = e.e_link_id";
+            + "LEFT JOIN emails e ON l.l_id = e.e_link_id "
+            + "GROUP BY s.s_id, s.s_started, s.s_finished, s.s_name, s.s_max_depth";
     private final String selectScrapeSql = "SELECT s.*,l.*,e.*,il.* "
             + "FROM scrapes s "
             + "LEFT JOIN links l ON s.s_id = l.l_scrape_id "
@@ -246,8 +247,9 @@ public class ScrapeDaoImpl extends BaseAbstractDao implements ScrapeDao {
         ms.setLinkCount(getInteger(rs, "ms_link_count"));
         ms.setNegativesCount(getInteger(rs, "ms_negatives_count"));
         ms.setPositivesCount(getInteger(rs, "ms_positives_count"));
-        if (StringUtils.isNotBlank(rs.getString("e_email"))) {
-            ms.getEmails().add(rs.getString("e_email"));
+        if (StringUtils.isNotBlank(rs.getString("email_set"))) {
+            ms.getEmails().addAll(this.getJsonSet(rs.getString("email_set"), String.class));
+            //ms.getEmails().add(rs.getString("e_email"));
         }
         return ms;
     }

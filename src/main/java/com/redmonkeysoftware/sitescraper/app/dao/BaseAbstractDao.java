@@ -9,7 +9,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
@@ -113,6 +115,17 @@ public abstract class BaseAbstractDao extends NamedParameterJdbcDaoSupport {
             }
         }
         return new ArrayList<>();
+    }
+
+    protected <T> Set<T> getJsonSet(String json, Class<T> type) {
+        if (StringUtils.isNotBlank(json)) {
+            try {
+                return mapper.readValue(json, mapper.getTypeFactory().constructCollectionType(Set.class, type));
+            } catch (IOException e) {
+                logger.warn("Error mapping from JSON", e);
+            }
+        }
+        return new HashSet<>();
     }
 
     public class StringMapper implements RowMapper<String> {

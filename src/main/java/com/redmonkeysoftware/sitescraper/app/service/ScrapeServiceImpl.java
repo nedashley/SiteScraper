@@ -7,6 +7,7 @@ import com.redmonkeysoftware.sitescraper.logic.Scrape;
 import com.redmonkeysoftware.sitescraper.logic.UrlHelper;
 import com.redmonkeysoftware.sitescraper.logic.exceptions.ScrapeException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,9 @@ public class ScrapeServiceImpl implements ScrapeService {
     @Override
     @Transactional(readOnly = true)
     public List<MiniScrape> lookupMiniScrapes() {
-        return scrapeDao.lookupMiniScrapes();
+        List<MiniScrape> results = scrapeDao.lookupMiniScrapes();
+        Collections.sort(results);
+        return results;
     }
 
     @Override
@@ -77,7 +80,11 @@ public class ScrapeServiceImpl implements ScrapeService {
     @Override
     @Transactional(readOnly = true)
     public Scrape lookupScrape(Long id) {
-        return scrapeDao.lookupScrape(id);
+        Scrape scrape = scrapeDao.lookupScrape(id);
+        if (scrape != null) {
+            Collections.sort(scrape.getLinks());
+        }
+        return scrape;
     }
 
     @Override

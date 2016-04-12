@@ -11,17 +11,17 @@
                     <table class="table">
                         <thead>
                             <tr class="danger">
-                                <th>Url</th>
-                                <th>Started</th>
-                                <th>Finished</th>
-                                <th>Resolves</th>
-                                <th>Response</th>
+                                <th class="col-md-4">Url</th>
+                                <th class="col-md-2">Started</th>
+                                <th class="col-md-2">Finished</th>
+                                <th class="col-md-2">Resolves</th>
+                                <th class="col-md-2">Response</th>
                                 <!--<th></th>-->
                             </tr>
                         </thead>
                         <tbody>
-                            <tr ng-repeat="link in model.scrape.failedLinks">
-                                <td>{{link.url}}</td>
+                            <tr ng-repeat="link in model.scrape.links | filter:{successful:false}:true">
+                                <td><a ng-href="{{link.url}}" target="_blank">{{link.url}}</a></td>
                                 <td>{{link.started|date:'EEE, dd MMM yyyy, hh:mm a'}}</td>
                                 <td>{{link.finished|date:'EEE, dd MMM yyyy, hh:mm a'}}</td>
                                 <td>{{link.resolves}}</td>

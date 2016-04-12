@@ -132,11 +132,11 @@ siteScraperApp.controller('ScrapesOverviewController', ['$scope', '$window', '$u
             $window.open('/SiteScraper/scrapes/' + scrape.id + '/report.xlsx');
         };
         $scope.loadScrapes = function () {
+            $scope.model.scrapes = [];
             scrapeApiService.lookupOverview().success(function (data) {
                 $scope.model.scrapes = data;
             }).error(function (data, status, headers, config) {
                 appAlert.add("danger", "Error occurred loading Scrapes: " + (typeof (data.message) !== 'undefined' ? data.message : status));
-                $scope.model.scrapes = [];
             });
         };
         $scope.loadScrapes();

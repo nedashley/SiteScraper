@@ -1,5 +1,6 @@
 package com.redmonkeysoftware.sitescraper.logic;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ public class Scrape implements Serializable, Comparable<Scrape> {
         return ObjectUtils.compare(started, o.started);
     }
 
+    @JsonIgnore
     public List<Link> getSuccessfulLinks() {
         List<Link> results = new ArrayList<>();
         for (Link link : links) {
@@ -45,6 +47,11 @@ public class Scrape implements Serializable, Comparable<Scrape> {
         return results;
     }
 
+    public int getSuccessfulCount() {
+        return getSuccessfulLinks().size();
+    }
+
+    @JsonIgnore
     public List<Link> getFailedLinks() {
         List<Link> results = new ArrayList<>();
         for (Link link : links) {
@@ -53,6 +60,18 @@ public class Scrape implements Serializable, Comparable<Scrape> {
             }
         }
         return results;
+    }
+
+    public int getFailedCount() {
+        return getFailedLinks().size();
+    }
+
+    public int getEmailsCount() {
+        int result = 0;
+        for (Link link : links) {
+            result += link.getEmails().size();
+        }
+        return result;
     }
 
     public Long getId() {

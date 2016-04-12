@@ -34,13 +34,19 @@
                         <div class="form-group">
                             <label class="control-label col-md-3">Successful:</label>
                             <div class="col-md-8">
-                                <p class="form-control-static">{{model.scrape.successfulLinks.length}}</p>
+                                <p class="form-control-static">{{model.scrape.successfulCount}}</p>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="control-label col-md-3">Failed:</label>
                             <div class="col-md-8">
-                                <p class="form-control-static">{{model.scrape.failedLinks.length}}</p>
+                                <p class="form-control-static">{{model.scrape.failedCount}}</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-3">Emails:</label>
+                            <div class="col-md-8">
+                                <p class="form-control-static">{{model.scrape.emailsCount}}</p>
                             </div>
                         </div>
                     </div>

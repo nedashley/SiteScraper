@@ -6,10 +6,11 @@
                 <div class="panel-heading">
                     <div class="pull-left">
                         <h4>Overview</h4>
-                        <small>Lists all jobs that have been run</small>
+                        <small>Lists all scrapes</small>
                     </div>
                     <div class="pull-right">
                         <div class="btn-group">
+                            <button type="button" class="btn btn-default" ng-click="loadScrapes()"><i class="fa fa-refresh"></i> Refresh</button>
                             <button type="button" class="btn btn-warning" ng-click="createScrape()"><i class="fa fa-plus"></i> New Scrape</button>
                         </div>
                     </div>
