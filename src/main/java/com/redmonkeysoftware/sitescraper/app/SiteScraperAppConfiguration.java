@@ -49,8 +49,8 @@ public class SiteScraperAppConfiguration {
     @Qualifier("linkProcessorTaskExecutor")
     public TaskExecutor getLinkProcessorTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(10);
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
         executor.setQueueCapacity(20000);
         return executor;
     }
