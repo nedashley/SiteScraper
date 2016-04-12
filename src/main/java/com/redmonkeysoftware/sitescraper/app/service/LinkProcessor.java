@@ -29,44 +29,54 @@ public class LinkProcessor implements Runnable {
     private static final Logger logger = Logger.getLogger(LinkProcessor.class.getName());
     private final ScrapingService service;
     private final Long scrapeId;
+    private final Long linkId;
     private final int maxDepth;
-    private final Link link;
-    private final CloseableHttpClient client = HttpClientBuilder.create().build();
-    private final RequestConfig requestConfig = RequestConfig.custom()
-            .setConnectionRequestTimeout(4000).setConnectTimeout(4000).setSocketTimeout(4000).build();
-    private final Pattern p = Pattern.compile("\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b", Pattern.CASE_INSENSITIVE);
+    private CloseableHttpClient client;
+    private RequestConfig requestConfig;
+    private Pattern emailRegex;
+    private Link link;
 
-    public LinkProcessor(final ScrapingService service, final Long scrapeId, final int maxDepth, final Link link) {
+    public LinkProcessor(final ScrapingService service, final Long scrapeId, final int maxDepth, final Long linkId) {
         this.service = service;
         this.scrapeId = scrapeId;
         this.maxDepth = maxDepth;
-        this.link = link;
+        this.linkId = linkId;
     }
 
     @Override
     public void run() {
         try {
-            link.setStarted(LocalDateTime.now());
-            HttpGet request = new HttpGet(link.getUrl());
-            request.setConfig(requestConfig);
-            try (CloseableHttpResponse response = client.execute(request)) {
-                link.setResolves(true);
-                link.setResponse(response.getStatusLine().getStatusCode());
-                if ((link.getResponse() >= 200) && (link.getResponse() < 300)) {
-                    String bodyAsString = EntityUtils.toString(response.getEntity());
-                    parseEmails(bodyAsString);
-                    if (maxDepth > 1) {
-                        for (String url : parseLinks(bodyAsString, link.getUrl())) {
-                            if (UrlHelper.sameHost(link.getUrl(), url)) {
-                                InnerLink innerLink = probeUrl(url, 2);
-                                link.getInnerLinks().add(innerLink);
+            //initialise components
+            client = HttpClientBuilder.create().build();
+            requestConfig = RequestConfig.custom().setConnectionRequestTimeout(4000).setConnectTimeout(4000).setSocketTimeout(4000).build();
+            emailRegex = Pattern.compile("\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b", Pattern.CASE_INSENSITIVE);
+            link = service.lookupLink(linkId);
+
+            if (link != null) {
+                link.setStarted(LocalDateTime.now());
+                HttpGet request = new HttpGet(link.getUrl());
+                request.setConfig(requestConfig);
+                try (CloseableHttpResponse response = client.execute(request)) {
+                    link.setResolves(true);
+                    link.setResponse(response.getStatusLine().getStatusCode());
+                    if ((link.getResponse() >= 200) && (link.getResponse() < 300)) {
+                        String bodyAsString = EntityUtils.toString(response.getEntity());
+                        parseEmails(bodyAsString);
+                        if (maxDepth > 1) {
+                            for (String url : parseLinks(bodyAsString, link.getUrl())) {
+                                if (UrlHelper.sameHost(link.getUrl(), url)) {
+                                    InnerLink innerLink = probeUrl(url, 2);
+                                    link.getInnerLinks().add(innerLink);
+                                }
                             }
                         }
                     }
                 }
+            } else {
+                logger.log(Level.WARNING, "Could not find link: {0}", linkId);
             }
         } catch (IOException | ParseException e) {
-            logger.log(Level.SEVERE, "Error processing Link", e);
+            logger.log(Level.FINE, "Error processing Link", e);
             link.setResolves(false);
             link.setResponse(-1);
         } finally {
@@ -103,7 +113,7 @@ public class LinkProcessor implements Runnable {
                 }
             }
         } catch (IOException | ParseException e) {
-            logger.log(Level.WARNING, "Error dealing with Inner Link", e);
+            logger.log(Level.FINE, "Error dealing with Inner Link", e);
             il.setResponse(-1);
         } finally {
             il.setFinished(LocalDateTime.now());
@@ -127,19 +137,19 @@ public class LinkProcessor implements Runnable {
                 }
             }
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Error parsing Body Links", e);
+            logger.log(Level.FINE, "Error parsing Body Links", e);
         }
         return results;
     }
 
     protected void parseEmails(String body) {
         try {
-            Matcher matcher = p.matcher(body);
+            Matcher matcher = emailRegex.matcher(body);
             while (matcher.find()) {
                 link.getEmails().add(matcher.group());
             }
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Error parsing Body Emails", e);
+            logger.log(Level.FINE, "Error parsing Body Emails", e);
         }
     }
 

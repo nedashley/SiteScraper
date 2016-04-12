@@ -90,7 +90,7 @@ public class ScrapeServiceImpl implements ScrapeService {
     @Async
     public void queueScrape(Scrape scrape) {
         for (Link link : scrape.getLinks()) {
-            taskExecutor.execute(new LinkProcessor(scrapingService, scrape.getId(), scrape.getMaxDepth(), link));
+            taskExecutor.execute(new LinkProcessor(scrapingService, scrape.getId(), scrape.getMaxDepth(), link.getId()));
         }
     }
 }
