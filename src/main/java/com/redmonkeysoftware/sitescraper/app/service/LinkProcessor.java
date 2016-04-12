@@ -16,6 +16,7 @@ import org.apache.http.ParseException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
@@ -47,26 +48,29 @@ public class LinkProcessor implements Runnable {
     public void run() {
         try {
             //initialise components
-            client = HttpClientBuilder.create().build();
             requestConfig = RequestConfig.custom().setConnectionRequestTimeout(4000).setConnectTimeout(4000).setSocketTimeout(4000).build();
+            client = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
             emailRegex = Pattern.compile("\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b", Pattern.CASE_INSENSITIVE);
             link = service.lookupLink(linkId);
 
             if (link != null) {
                 link.setStarted(LocalDateTime.now());
                 HttpGet request = new HttpGet(link.getUrl());
-                request.setConfig(requestConfig);
                 try (CloseableHttpResponse response = client.execute(request)) {
                     link.setResolves(true);
                     link.setResponse(response.getStatusLine().getStatusCode());
-                    if ((link.getResponse() >= 200) && (link.getResponse() < 300)) {
-                        String bodyAsString = EntityUtils.toString(response.getEntity());
-                        parseEmails(bodyAsString);
-                        if (maxDepth > 1) {
-                            for (String url : parseLinks(bodyAsString, link.getUrl())) {
-                                if (UrlHelper.sameHost(link.getUrl(), url)) {
-                                    InnerLink innerLink = probeUrl(url, 2);
-                                    link.getInnerLinks().add(innerLink);
+                    String contentMimeType = ContentType.getOrDefault(response.getEntity()).getMimeType();
+                    if (StringUtils.equalsIgnoreCase(contentMimeType, ContentType.TEXT_HTML.getMimeType())) {
+                        if ((link.getResponse() >= 200) && (link.getResponse() < 300)) {
+                            String bodyAsString = EntityUtils.toString(response.getEntity());
+                            parseEmails(bodyAsString);
+                            if (maxDepth > 1) {
+                                for (String url : parseLinks(bodyAsString, link.getUrl())) {
+                                    url = UrlHelper.formatAndValidateUrl(url);
+                                    if ((url != null) && (UrlHelper.sameHost(link.getUrl(), url))) {
+                                        InnerLink innerLink = probeUrl(url, 2);
+                                        link.getInnerLinks().add(innerLink);
+                                    }
                                 }
                             }
                         }
@@ -96,17 +100,20 @@ public class LinkProcessor implements Runnable {
             il.setDepth(depth);
             il.setStarted(LocalDateTime.now());
             HttpGet request = new HttpGet(url);
-            request.setConfig(requestConfig);
             try (CloseableHttpResponse response = client.execute(request)) {
                 il.setResponse(response.getStatusLine().getStatusCode());
-                if ((il.getResponse() >= 200) && (il.getResponse() < 300)) {
-                    String bodyAsString = EntityUtils.toString(response.getEntity());
-                    parseEmails(bodyAsString);
-                    if ((depth + 1) < maxDepth) {
-                        for (String innerUrl : parseLinks(bodyAsString, url)) {
-                            if (UrlHelper.sameHost(link.getUrl(), innerUrl)) {
-                                InnerLink innerLink = probeUrl(innerUrl, depth + 1);
-                                link.getInnerLinks().add(innerLink);
+                String contentMimeType = ContentType.getOrDefault(response.getEntity()).getMimeType();
+                if (StringUtils.equalsIgnoreCase(contentMimeType, ContentType.TEXT_HTML.getMimeType())) {
+                    if ((il.getResponse() >= 200) && (il.getResponse() < 300)) {
+                        String bodyAsString = EntityUtils.toString(response.getEntity());
+                        parseEmails(bodyAsString);
+                        if ((depth + 1) < maxDepth) {
+                            for (String innerUrl : parseLinks(bodyAsString, url)) {
+                                innerUrl = UrlHelper.formatAndValidateUrl(innerUrl);
+                                if ((innerUrl != null) && (UrlHelper.sameHost(link.getUrl(), url))) {
+                                    InnerLink innerLink = probeUrl(innerUrl, depth + 1);
+                                    link.getInnerLinks().add(innerLink);
+                                }
                             }
                         }
                     }

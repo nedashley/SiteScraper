@@ -10,10 +10,10 @@ import org.apache.commons.validator.routines.UrlValidator;
 public class UrlHelper {
 
     private static final Logger logger = Logger.getLogger(UrlHelper.class.getName());
-    private static UrlValidator urlValidator = new UrlValidator(new String[]{"http", "https"});
+    private static final UrlValidator urlValidator = new UrlValidator(new String[]{"http", "https"});
 
     public static String formatAndValidateUrl(String url) {
-        if (StringUtils.isNotBlank(url)) {
+        if ((StringUtils.isNotBlank(url)) && (StringUtils.length(url) < 256)) {
             url = StringUtils.lowerCase(url);
             if (!StringUtils.startsWith(url, "http")) {
                 if (StringUtils.startsWith(url, ":")) {
