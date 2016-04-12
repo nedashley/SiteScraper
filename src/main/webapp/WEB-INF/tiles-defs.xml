@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+
+<tiles-definitions>
+    <definition name="template" template="/WEB-INF/jsp/template.jsp">
+        <put-attribute name="page_title" value="Basic Template"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/blank.jsp"/>
+        <put-attribute name="navbar" value="/WEB-INF/jsp/navbar.jsp"/>
+    </definition>
+    
+    <definition name="login" extends="template">
+        <put-attribute name="page_title" value="Login"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/login.jsp"/>
+        <put-attribute name="navbar" value="/WEB-INF/jsp/navbar.jsp"/>
+    </definition>
+    
+    <definition name="scrapes_template" template="/WEB-INF/jsp/scrapes/template.jsp">
+        <put-attribute name="page_title" value="Scrapes"/>
+        <put-attribute name="content" value="/WEB-INF/jsp/blank.jsp"/>
+        <put-attribute name="navbar" value="/WEB-INF/jsp/navbar.jsp"/>
+    </definition>
+    
+    <definition name="scrapes_overview" template="/WEB-INF/jsp/scrapes/overview.jsp" />
+    <definition name="scrape" template="/WEB-INF/jsp/scrapes/scrape.jsp">
+        <put-attribute name="positives_tab" value="/WEB-INF/jsp/scrapes/tabs/positives_tab.jsp"/>
+        <put-attribute name="negatives_tab" value="/WEB-INF/jsp/scrapes/tabs/negatives_tab.jsp"/>
+    </definition>
+    
+    <definition name="create_scrape_modal" template="/WEB-INF/jsp/scrapes/modals/create_scrape_modal.jsp" />
+    <definition name="emails_modal" template="/WEB-INF/jsp/scrapes/modals/emails_modal.jsp" />
+    <definition name="inner_links_modal" template="/WEB-INF/jsp/scrapes/modals/inner_links_modal.jsp" />
+    
+</tiles-definitions>
